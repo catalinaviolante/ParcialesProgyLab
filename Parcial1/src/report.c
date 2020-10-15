@@ -29,7 +29,7 @@ int report_menu(Cliente *clientList, int clientLen, Publicacion *publicacionList
 	{
 		do
 		{
-			if(utn_getInt("\nElija una opcion: \n1)Cliente con mas avisos\n2)Cantidad de avisos pausados\n3)Rubro con mas avisos\n4)Salir ", "\nERROR! Elija una opcion valida", &option, 2, 1, 4)==0)
+			if(utn_getInt("\nElija una opcion: \n1)Cliente con mas avisos\n2)Cantidad de avisos pausados\n3)Rubro con mas avisos\n4)Cliente con mas cantidad de avisos activos.\n5)Cliente con mas cantidad de avisos pausados.\n6)Salir ", "\nERROR! Elija una opcion valida", &option, 2, 1, 4)==0)
 			{
 				switch(option)
 				{
@@ -47,7 +47,7 @@ int report_menu(Cliente *clientList, int clientLen, Publicacion *publicacionList
 					}
 					else
 					{
-						printf("\nNo hay avisos pausados\n");
+						printf("\nNo hay avisos pausados.\n");
 					}
 				break;
 				case 3:
@@ -57,12 +57,32 @@ int report_menu(Cliente *clientList, int clientLen, Publicacion *publicacionList
 					}
 					else
 					{
-						printf("\nNo hay rubros cargados\n");
+						printf("\nNo hay rubros cargados.\n");
 					}
 				break;
+				case 4:
+					if(report_clientWithMaxActiveAdsQty(clientList, clientLen, publicacionList, publicacionLen)==0)
+					{
+						retornar = 0;
+					}
+					else
+					{
+						printf("\nOcurrio un error al intentar hallar al usuario con mas avisos activos.\n");
+					}
+					break;
+				case 5:
+					if(report_clientWithMaxPausedAdsQty(clientList, clientLen, publicacionList, publicacionLen)==0)
+					{
+						retornar = 0;
+					}
+					else
+					{
+						printf("Ocurrio un error al intentar hallar al usuario con mas avisos pausados.\n");
+					}
+					break;
 				}
 			}
-		}while(option != 4);
+		}while(option != 6);
 	}
 	return retornar;
 }
@@ -188,3 +208,123 @@ int report_equalSectorQty(Publicacion *list, int len, int sector, int *pCounter)
 	return retornar;
 }
 
+/**
+ * \brief Function to find the client with more quantity of active advertisements
+ * \param Cliente *clientList: Pointer to an Client array
+ * \param int clientLen: Client array length
+ * \param Publicacion *publicacionList: Pointer to an Publicacion array
+ * \param int publicacionLen: Length of the array
+ * \return (-1) if something went wrong, (0) if everything is OK
+ */
+int report_clientWithMaxActiveAdsQty(Cliente *clientList, int clientLen, Publicacion *publicacionList, int publicacionLen)
+{
+	int retornar=-1;
+	int currentCounter;
+	int maxCounter;
+	int index;
+	Cliente bufferMax;
+	if(clientList!=NULL && clientLen>0 && publicacionList!=NULL && publicacionLen>0)
+	{
+		for(int i=0;i<clientLen;i++)
+		{
+			report_adCounterEachClientActiveAd(publicacionList, publicacionLen, clientList[i].id,&currentCounter);
+			if(i==0 || currentCounter>maxCounter)
+			{
+				maxCounter = currentCounter;
+				bufferMax = clientList[i];
+			}
+		}
+		if(cliente_findByID(clientList, clientLen, bufferMax.id, &index)==0)
+		{
+			printf("\nEl cliente con mas avisos activos es: %s %s, CUIT: %s", clientList[index].name, clientList[index].lastName, clientList[index].cuit);
+			retornar = 0;
+		}
+	}
+	return retornar;
+}
+/**
+ * \brief Function to count how many active ads has a client
+ * \param Advertisement *list: Pointer to an Advertisement array
+ * \param int len: Length of the array
+ * \param int id: receive the ID to be search
+ * \param int *pCounter: Pointer of the counter
+ * \return (-1) if something went wrong, (0) if everything is OK
+ */
+int report_adCounterEachClientActiveAd(Publicacion *publicacionList, int adLen,int id, int *pCounter)
+{
+	int retornar=-1;
+	int counter=0;
+	if(publicacionList!=NULL && adLen>0)
+	{
+		for(int i=0;i<adLen;i++)
+		{
+			if(publicacionList[i].idPublicacion == id && publicacionList[i].estado == 1)
+			{
+				counter++;
+			}
+		}
+		*pCounter = counter;
+		retornar = 0;
+	}
+	return retornar;
+}
+/**
+ * \brief Function to find the client with more quantity of paused advertisements
+ * \param Cliente *clientList: Pointer to an Client array
+ * \param int clientLen: Client array length
+ * \param Publicacion *publicacionList: Pointer to an Publicacion array
+ * \param int publicacionLen: Length of the array
+ * \return (-1) if something went wrong, (0) if everything is OK
+ */
+int report_clientWithMaxPausedAdsQty(Cliente *clientList, int clientLen, Publicacion *publicacionList, int publicacionLen)
+{
+	int retornar=-1;
+	int currentCounter;
+	int maxCounter;
+	int index;
+	Cliente bufferMax;
+	if(clientList!=NULL && clientLen>0 && publicacionList!=NULL && publicacionLen>0)
+	{
+		for(int i=0;i<clientLen;i++)
+		{
+			report_adCounterEachClientPausedAds(publicacionList, publicacionLen, clientList[i].id,&currentCounter);
+			if(i==0 || currentCounter>maxCounter)
+			{
+				maxCounter = currentCounter;
+				bufferMax = clientList[i];
+			}
+		}
+		if(cliente_findByID(clientList, clientLen, bufferMax.id, &index)==0)
+		{
+			printf("\nEl cliente con mas avisos pausados es: %s %s, CUIT: %s", clientList[index].name, clientList[index].lastName, clientList[index].cuit);
+			retornar = 0;
+		}
+	}
+	return retornar;
+}
+/**
+ * \brief Function to count how many ads has a client
+ * \param Advertisement *list: Pointer to an Advertisement array
+ * \param int len: Length of the array
+ * \param int id: receive the ID to be search
+ * \param int *pCounter: Pointer of the counter
+ * \return (-1) if something went wrong, (0) if everything is OK
+ */
+int report_adCounterEachClientPausedAds(Publicacion *publicacionList, int adLen, int id, int *pCounter)
+{
+	int retornar=-1;
+	int counter=0;
+	if(publicacionList!=NULL && adLen>0)
+	{
+		for(int i=0;i<adLen;i++)
+		{
+			if(publicacionList[i].idCliente == id && publicacionList[i].estado == 0)
+			{
+				counter++;
+			}
+		}
+		*pCounter = counter;
+		retornar = 0;
+	}
+	return retornar;
+}
