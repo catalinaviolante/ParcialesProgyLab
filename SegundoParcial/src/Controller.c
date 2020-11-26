@@ -259,7 +259,7 @@ int controller_saveClientsWithUnchargedPosters(LinkedList* clientList, LinkedLis
 	if(clientList!=NULL && sellList!=NULL)
 	{
 		bufferSellList = ll_cloneFilter(sellList, venta_isSold);
-		pFile = fopen("porCobrar.txt", "w");
+		pFile = fopen("a_cobrar.txt", "w");
 		if(pFile!=NULL)
 		{
 			fprintf(pFile, "id,nombre,apellido,cuit,ventas_a_cobrar\n");
